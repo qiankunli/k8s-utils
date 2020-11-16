@@ -3,7 +3,6 @@ package pod
 import (
 	"encoding/json"
 	"fmt"
-	"k8s-sync/pkg/constant"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
@@ -60,15 +59,15 @@ func FetchEnvVarInt(pod *v1.Pod, envName string, defaultValue int) int {
 	return intValue
 }
 
-func FetchPodAnnotation(pod *v1.Pod, annotationKey string) string {
+func FetchPodAnnotation(pod *v1.Pod, annotationKey string, defaultValue string) string {
 	annotations := pod.Annotations
 	if annotations == nil || len(annotations) == 0 {
-		return ""
+		return defaultValue
 	}
 	if value, ok := annotations[annotationKey]; ok {
 		return value
 	}
-	return ""
+	return defaultValue
 }
 
 func FetchPodIp(pod *v1.Pod) string {
@@ -76,33 +75,6 @@ func FetchPodIp(pod *v1.Pod) string {
 		return ""
 	}
 	return pod.Status.PodIP
-}
-func FetchPodBillIdInt64(pod *v1.Pod, defaultValue int64) int64 {
-	// parse billId
-	billIdStr := FetchLabelValue(pod, constant.LABEL_BILL_ID, "")
-	if len(billIdStr) == 0 {
-		billIdStr = FetchEnvVar(pod, constant.EnvPublishBillId, "")
-	}
-	if len(billIdStr) == 0 {
-		return defaultValue
-	}
-	billId, err := strconv.ParseInt(billIdStr, 10, 64)
-	if err != nil {
-		return defaultValue
-	}
-	return billId
-}
-
-func FetchPodIsolation(pod *v1.Pod, defaultValue string) string {
-	// parse billId
-	isolation := FetchLabelValue(pod, constant.LABEL_ISOLATION, "")
-	if len(isolation) == 0 {
-		isolation = FetchEnvVar(pod, constant.EnvIsolation, "")
-	}
-	if len(isolation) == 0 {
-		return defaultValue
-	}
-	return isolation
 }
 
 func PatchPodLabels(kubeClient *kubernetes.Clientset, pod *v1.Pod, labels map[string]string) error {
